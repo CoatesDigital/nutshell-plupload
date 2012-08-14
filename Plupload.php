@@ -37,8 +37,6 @@ namespace application\plugin\plupload
 			
 			$config = Nutshell::getInstance()->config;
 			$temporary_dir = $config->plugin->Plupload->temporary_dir;
-			$completed_dir = $config->plugin->Plupload->completed_dir;
-			$thumbnail_dir = $config->plugin->Plupload->thumbnail_dir;
 			
 			$plupload = new \PluploadProcessor();
 			$plupload->setTargetDir($temporary_dir);
@@ -48,12 +46,28 @@ namespace application\plugin\plupload
 		
 		public function uploadComplete($filename)
 		{
+			$config = Nutshell::getInstance()->config;
+			$completed_dir = $config->plugin->Plupload->completed_dir;
+			$thumbnail_dir = $config->plugin->Plupload->thumbnail_dir;
+			$pathinfo	= pathinfo($filename);
+			$ext		= $pathinfo['extension'];
+			$basename	= $pathinfo['basename'];
+			
+			// Create thumbnail
+			if (!file_exists($thumbnail_dir)) @mkdir($thumbnail_dir);
+			copy($filename, $thumbnail_dir.$basename); // Todo, this is a bit of a cop-out
+			
+			// Move to completed folder
+			if (!file_exists($completed_dir)) @mkdir($completed_dir);
+			rename($filename, $completed_dir.$basename);
+			
+			// process any extra stuff
 			if($this->callback)
 			{
 				call_user_func_array
 				(
 					$this->callback,
-					array($filename)
+					array($basename)
 				 );
 			}
 		}
