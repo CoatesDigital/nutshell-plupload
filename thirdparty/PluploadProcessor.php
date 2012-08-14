@@ -9,13 +9,14 @@
  * Contributing: http://www.plupload.com/contributing
  * refactored into an object by Dean Rather
  */
-class Plupload
+class PluploadProcessor
 {
 	private $targetDir			= null;
 	private $cleanupTargetDir	= null; // Remove old files
 	private $maxFileAge			= null; // Temp file age in seconds
-	private $maxExecutionTime	= null;
+	private $maxExecutionTime	= null; // 5 minutes execution time
 	private $filenameCleanRegex	= null;
+	private $callback			= null;
 	
 	public function __construct()
 	{
@@ -24,6 +25,7 @@ class Plupload
 		$this->maxFileAge			= 5 * 3600;
 		$this->maxExecutionTime		= 5 * 60;
 		$this->filenameCleanRegex	= '/[^\w\._]+/';
+		$this->callback				= null;
 	}
 	
 	public function getTargetDir()
@@ -81,6 +83,16 @@ class Plupload
 	    return $this;
 	}
 	
+	public function getCallback()
+	{
+	    return $this->callback;
+	}
+	
+	public function setCallback($callback)
+	{
+	    $this->callback = $callback;
+	    return $this;
+	}
 	
 	public function process()
 	{
@@ -97,8 +109,8 @@ class Plupload
 		$maxFileAge			= $this->maxFileAge;
 		$maxExecutionTime	= $this->maxExecutionTime;
 		$filenameCleanRegex	= $this->filenameCleanRegex;
-
-		// 5 minutes execution time
+		$callback			= $this->callback;
+		
 		@set_time_limit($maxExecutionTime);
 
 		// Get parameters
@@ -226,6 +238,16 @@ class Plupload
 		{
 			// Strip the temp .part suffix off 
 			rename("{$filePath}.part", $filePath);
+			
+			if($callback)
+			{
+				call_user_func_array
+				(
+					$callback,
+					array($filePath)
+				 );
+			}
+			
 			die('{"jsonrpc" : "2.0", "result" : "complete", "id" : "id"}');
 		}
 
