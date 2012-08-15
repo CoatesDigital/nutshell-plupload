@@ -6,7 +6,7 @@
 		"thumbnail_dir":			"c:\\tmp\\plupload\\thumbnail\\",
 		"thumbnail_width":			150,
 		"thumbnail_height":			150,
-		"thumbnail_constraint":		"scale-within",
+		"thumbnail_constraint":		"scale",
 		"ffmpeg_dir":				""
 	}
 }

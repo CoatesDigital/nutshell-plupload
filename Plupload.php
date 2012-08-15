@@ -62,22 +62,18 @@ namespace application\plugin\plupload
 			{
 				case 'jpg':
 				case 'png':
-				case 'gif':
-				case 'jpg':
 					// Make a thumbnail from the image, store it in the thumbnail dir
-					$this->imageThumbnail($filePathAndName, $thumbnail_dir.$filename.'.png');
+					$this->imageThumbnail($filePathAndName, $thumbnail_dir.$basename.'.png');
 					// Move the image to the complete dir
 					rename($filePathAndName, $completed_dir.$basename);
 					break;
-				case 'avi':
-				case 'mpg':
-				case 'mov':
+				case 'mp4':
 					// Make a thumbnail from the video, store it in the temp dir
-					$this->videoThumbnail($filePathAndName, $temporary_dir.$filename.'.png');
+					$this->videoThumbnail($filePathAndName, $temporary_dir.$basename.'.png');
 					// make a thumbnail from the thumbnail, store it in the thumbnail dir
-					$this->imageThumbnail($temporary_dir.$filename.'.png', $thumbnail_dir.$filename.'.png');
+					$this->imageThumbnail($temporary_dir.$basename.'.png', $thumbnail_dir.$basename.'.png');
 					// delete the thumbnail in the temporary dir
-					@unlink($temporary_dir.$filename.'.png');
+					@unlink($temporary_dir.$basename.'.png');
 					// move the video to the complete dir
 					rename($filePathAndName, $completed_dir.$basename);
 					break;
@@ -86,8 +82,8 @@ namespace application\plugin\plupload
 					$this->unzip($filePathAndName, $temporary_dir.$filename);
 					// delete the original file
 					@unlink($filePathAndName);
-					// copy the thumbnail into the thumbnail dir
-					copy($temporary_dir.$filename._DS_.'preview.png', $thumbnail_dir.$filename.'.png');
+					// move the thumbnail into the thumbnail dir
+					rename($temporary_dir.$filename._DS_.'preview.png', $thumbnail_dir.$filename.'.zip.png');
 					// move the folder into the complete dir
 					rename($temporary_dir.$filename, $completed_dir.$filename);
 			}
@@ -113,8 +109,10 @@ namespace application\plugin\plupload
 			$config = Nutshell::getInstance()->config;
 			switch($config->plugin->Plupload->thumbnail_constraint)
 			{
-				case 'scale-within':
+				case 'scale':
 					return 'todo';
+				case 'crop-best-orientation':
+					return $this->cropBestOrientation($image, $newFile);
 				case 'stretch-best-orientation':
 					return $this->stretchBestOrientation($image, $newFile);
 				default:
@@ -153,13 +151,67 @@ namespace application\plugin\plupload
 			$image->save($newFile);
 		}
 		
+		private function cropBestOrientation($image, $newFile)
+		{
+			$config = Nutshell::getInstance()->config;
+			$thumbnail_width		= $config->plugin->Plupload->thumbnail_width;
+			$thumbnail_height		= $config->plugin->Plupload->thumbnail_height;
+			
+			// swap the thumbnail width and height if they don't match the image's orientation
+			if($image->getWidth() > $image->getHeight()) // image is landscape
+			{
+				if($thumbnail_height > $thumbnail_width) // config is portrait
+				{
+					// switch it
+					$temp				= $thumbnail_width;
+					$thumbnail_width	= $thumbnail_height;
+					$thumbnail_height	= $temp;
+				}
+				$image->cropToHeight($thumbnail_width, $thumbnail_height);
+			}
+			else // image is portrait
+			{
+				if($thumbnail_width > $thumbnail_height) // config is landscape
+				{
+					// switch it
+					$temp				= $thumbnail_width;
+					$thumbnail_width	= $thumbnail_height;
+					$thumbnail_height	= $temp;
+				}
+				$image->cropToWidth($thumbnail_width, $thumbnail_height);
+			}
+			$image->save($newFile);
+		}
+		
 		private function videoThumbnail($originalFile, $newFile)
 		{
 			$config = Nutshell::getInstance()->config;
 			$ffmpeg_dir = $config->plugin->Plupload->ffmpeg_dir;
 			if(!$ffmpeg_dir) return;
+			
+			$duration = $this->getVideoDuration($originalFile);
+			die($duration);
 			$command = "\"{$ffmpeg_dir}ffmpeg\" -i \"$originalFile\" -ss 00:00:08 -f image2 \"$newFile\"";
 			shell_exec($command);
+		}
+		
+		private function getVideoDuration($filename)
+		{
+			$config = Nutshell::getInstance()->config;
+			$ffmpeg_dir = $config->plugin->Plupload->ffmpeg_dir;
+			if(!$ffmpeg_dir) return;
+			
+			ob_start();
+			$command = "\"{$ffmpeg_dir}ffmpeg\" -i \"$filename\" 2>&1";
+			passthru($command);
+			$result = ob_get_contents();
+			ob_end_clean();
+			
+			preg_match('/Duration: (.*?),/', $result, $matches);
+			$duration = $matches[1];
+			$duration_array = explode(':', $duration);
+			$duration = $duration_array[0] * 3600 + $duration_array[1] * 60 + $duration_array[2];
+			return $duration;
 		}
 		
 		private function unzip($file, $directory)
