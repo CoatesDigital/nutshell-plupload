@@ -68,11 +68,11 @@ namespace application\plugin\plupload
 					rename($filePathAndName, $completed_dir.$basename);
 					break;
 				case 'mp4':
-					// Make a thumbnail from the video, store it in the temp dir
-					$this->videoThumbnail($filePathAndName, $temporary_dir.$basename.'.png');
-					// make a thumbnail from the thumbnail, store it in the thumbnail dir
+					// get a screenshot from the video, store it in the temp dir
+					$this->videoScreenshot($filePathAndName, $temporary_dir.$basename.'.png');
+					// make a thumbnail from thescreenshot , store it in the thumbnail dir
 					$this->imageThumbnail($temporary_dir.$basename.'.png', $thumbnail_dir.$basename.'.png');
-					// delete the thumbnail in the temporary dir
+					// delete the screenshot in the temporary dir
 					@unlink($temporary_dir.$basename.'.png');
 					// move the video to the complete dir
 					rename($filePathAndName, $completed_dir.$basename);
@@ -183,19 +183,23 @@ namespace application\plugin\plupload
 			$image->save($newFile);
 		}
 		
-		private function videoThumbnail($originalFile, $newFile)
+		private function videoScreenshot($originalFile, $newFile, $percentage = 10)
 		{
+			// Check ffmpeg is configured
 			$config = Nutshell::getInstance()->config;
 			$ffmpeg_dir = $config->plugin->Plupload->ffmpeg_dir;
 			if(!$ffmpeg_dir) return;
 			
+			// Get the potision a percentage of the way in the video
 			$duration = $this->getVideoDuration($originalFile);
-			die($duration);
-			$command = "\"{$ffmpeg_dir}ffmpeg\" -i \"$originalFile\" -ss 00:00:08 -f image2 \"$newFile\"";
+			$position = ($duration * ($percentage / 100));
+			
+			// save the screenshot
+			$command = "\"{$ffmpeg_dir}ffmpeg\" -i \"$originalFile\" -ss $position -f image2 \"$newFile\"";
 			shell_exec($command);
 		}
 		
-		private function getVideoDuration($filename)
+		private function getVideoDuration($filename, $seconds = true)
 		{
 			$config = Nutshell::getInstance()->config;
 			$ffmpeg_dir = $config->plugin->Plupload->ffmpeg_dir;
@@ -209,8 +213,12 @@ namespace application\plugin\plupload
 			
 			preg_match('/Duration: (.*?),/', $result, $matches);
 			$duration = $matches[1];
-			$duration_array = explode(':', $duration);
-			$duration = $duration_array[0] * 3600 + $duration_array[1] * 60 + $duration_array[2];
+			
+			if($seconds)
+			{
+				$duration_array = explode(':', $duration);
+				$duration = $duration_array[0] * 3600 + $duration_array[1] * 60 + $duration_array[2];
+			}
 			return $duration;
 		}
 		
