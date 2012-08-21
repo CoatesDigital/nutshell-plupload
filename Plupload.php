@@ -61,7 +61,7 @@ namespace application\plugin\plupload
 			
 			// Create thumbnail, move to complete dir
 			if (!file_exists($thumbnail_dir)) @mkdir($thumbnail_dir);
-				if (!file_exists($completed_dir)) @mkdir($completed_dir);
+			if (!file_exists($completed_dir)) @mkdir($completed_dir);
 			switch($extension)
 			{
 				case 'jpg':
@@ -69,7 +69,7 @@ namespace application\plugin\plupload
 					// Make thumbnails from the image, store them in the thumbnail dir
 					$thumbnailMaker->processFile($filePathAndName);
 					// Move the image to the complete dir
-		//			rename($filePathAndName, $completed_dir.$basename);
+					rename($filePathAndName, $completed_dir.$basename);
 					break;
 				case 'mp4':
 					// get a screenshot from the video, store it in the temp dir

@@ -34,6 +34,8 @@ namespace application\plugin\plupload
 			// Output the image into each of the thumbnail sizes
 			foreach($this->thumbnails as $thumbnail)
 			{
+				$filepath = $this->getFilePath($thumbnail);
+				if (!file_exists($filepath)) @mkdir($filepath);
 				$image	= new \SimpleImage();
 				$image->load($file);
 				switch($thumbnail->constraint)
@@ -143,10 +145,17 @@ namespace application\plugin\plupload
 		
 		private function getFilename($config)
 		{
+			$filepath = $this->getFilePath($config);
 			$pathinfo = pathinfo($this->filename);
 			$basename = $pathinfo['basename'];
-			$filename = $this->outputDirectory.$basename.'.'.$config->width.'x'.$config->height.'.png';
+			$filename = $filepath.$basename.'.png';
 			return $filename;
+		}
+		
+		private function getFilePath($config)
+		{
+			$filepath = $this->outputDirectory._DS_.$config->width.'x'.$config->height._DS_;
+			return $filepath;
 		}
 	}
 }
