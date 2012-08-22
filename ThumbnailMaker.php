@@ -7,6 +7,7 @@ namespace application\plugin\plupload
 	{
 		private $filename			= '';
 		private $outputDirectory	= '';
+		private $outFileName		= null;
 		private $thumbnails			= null;
 		
 		public function __construct()
@@ -27,9 +28,10 @@ namespace application\plugin\plupload
 			}
 		}
 		
-		public function processFile($file)
+		public function processFile($file, $outFileName=null)
 		{
 			$this->filename	= $file;
+			$this->outFileName	= $outFileName;
 			
 			// Output the image into each of the thumbnail sizes
 			foreach($this->thumbnails as $thumbnail)
@@ -146,9 +148,16 @@ namespace application\plugin\plupload
 		private function getFilename($config)
 		{
 			$filepath = $this->getFilePath($config);
-			$pathinfo = pathinfo($this->filename);
-			$basename = $pathinfo['basename'];
-			$filename = $filepath.$basename.'.png';
+			
+			$basename = $this->outFileName;
+			if(!$basename)
+			{
+				$pathinfo = pathinfo($this->filename);
+				$basename = $pathinfo['basename'];
+				$basename = $basename.'.png';
+			}
+			
+			$filename = $filepath.$basename;
 			return $filename;
 		}
 		

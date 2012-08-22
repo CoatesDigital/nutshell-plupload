@@ -75,7 +75,7 @@ namespace application\plugin\plupload
 					// get a screenshot from the video, store it in the temp dir
 					$this->videoScreenshot($filePathAndName, $temporary_dir.$basename.'.png');
 					// Make thumbnails from the screenshot, store them in the thumbnail dir
-					$thumbnailMaker->processFile($temporary_dir.$basename.'.png');
+					$thumbnailMaker->processFile($temporary_dir.$basename.'.png', $basename.'.png');
 					// delete the screenshot in the temporary dir
 					@unlink($temporary_dir.$basename.'.png');
 					// move the video to the complete dir
