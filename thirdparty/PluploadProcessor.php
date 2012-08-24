@@ -138,7 +138,7 @@ class PluploadProcessor
 		$filePath = $targetDir . DIRECTORY_SEPARATOR . $fileName;
 
 		// Create target dir
-		if (!file_exists($targetDir)) @mkdir($targetDir);
+		if (!file_exists($targetDir)) @mkdir($targetDir, 0755, true);
 
 		// Remove old temp files	
 		if ($cleanupTargetDir && is_dir($targetDir) && ($dir = opendir($targetDir)))

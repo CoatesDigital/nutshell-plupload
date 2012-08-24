@@ -37,7 +37,7 @@ namespace application\plugin\plupload
 			foreach($this->thumbnails as $thumbnail)
 			{
 				$filepath = $this->getFilePath($thumbnail);
-				if (!file_exists($filepath)) @mkdir($filepath);
+				if (!file_exists($filepath)) @mkdir($filepath, 0755, true);
 				$image	= new \SimpleImage();
 				$image->load($file);
 				switch($thumbnail->constraint)

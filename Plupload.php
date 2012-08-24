@@ -60,8 +60,8 @@ namespace application\plugin\plupload
 			$thumbnailMaker = new ThumbnailMaker();
 			
 			// Create thumbnail, move to complete dir
-			if (!file_exists($thumbnail_dir)) @mkdir($thumbnail_dir);
-			if (!file_exists($completed_dir)) @mkdir($completed_dir);
+			if (!file_exists($thumbnail_dir)) @mkdir($thumbnail_dir, 0755, true);
+			if (!file_exists($completed_dir)) @mkdir($completed_dir, 0755, true);
 			switch($extension)
 			{
 				case 'jpg':
