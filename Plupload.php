@@ -87,7 +87,8 @@ namespace application\plugin\plupload
 					// delete the original file
 					@unlink($filePathAndName);
 					// Make thumbnails from the provided 'preview.png', store them in the thumbnail dir
-					$thumbnailMaker->processFile($temporary_dir.$filename._DS_.'preview.png');
+					$previewFileName = $temporary_dir.$filename._DS_.'preview.png';
+					if(file_exists($previewFileName)) $thumbnailMaker->processFile($previewFileName);
 					// move the folder into the complete dir
 					rename($temporary_dir.$filename, $completed_dir.$filename);
 			}
