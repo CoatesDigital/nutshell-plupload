@@ -23,11 +23,11 @@ namespace application\plugin\plupload
 			
 			if($image->getHeight() > $image->getWidth())
 			{
-				$this->orientation = "Portrait";
+				$this->orientation = "portrait";
 			}
 			else
 			{
-				$this->orientation = "Landscape";
+				$this->orientation = "landscape";
 			}
 		}
 		
