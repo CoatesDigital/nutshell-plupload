@@ -9,6 +9,27 @@ namespace application\plugin\plupload
 		private $outputDirectory	= '';
 		private $outFileName		= null;
 		private $thumbnails			= null;
+		private $orientation		= '';
+		
+		public function getOrientation()
+		{
+			return $this->orientation;
+		}
+		
+		public function calculateOrientation($file)
+		{
+			$image = new \SimpleImage();
+			$image->load($file);
+			
+			if($image->getHeight() > $image->getWidth())
+			{
+				$this->orientation = "Portrait";
+			}
+			else
+			{
+				$this->orientation = "Landscape";
+			}
+		}
 		
 		public function __construct()
 		{
@@ -32,13 +53,14 @@ namespace application\plugin\plupload
 		{
 			$this->filename	= $file;
 			$this->outFileName	= $outFileName;
+			$this->calculateOrientation($file);
 			
 			// Output the image into each of the thumbnail sizes
 			foreach($this->thumbnails as $thumbnail)
 			{
 				$filepath = $this->getFilePath($thumbnail);
 				if (!file_exists($filepath)) @mkdir($filepath, 0755, true);
-				$image	= new \SimpleImage();
+				$image = new \SimpleImage();
 				$image->load($file);
 				switch($thumbnail->constraint)
 				{

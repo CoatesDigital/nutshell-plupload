@@ -98,7 +98,7 @@ namespace application\plugin\plupload
 				call_user_func_array
 				(
 					$this->callback,
-					array($basename)
+					array($basename, $thumbnailMaker)
 				 );
 			}
 		}
