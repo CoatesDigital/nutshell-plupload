@@ -56,6 +56,7 @@ namespace application\plugin\plupload
 			$basename	= $pathinfo['basename'];	// eg. myImage.jpg
 			$filename 	= $pathinfo['filename'];	// eg. myImage
 			$extension	= $pathinfo['extension'];	// eg. jpg
+			$extension = strtolower($extension);
 			
 			$thumbnailMaker = new ThumbnailMaker();
 			

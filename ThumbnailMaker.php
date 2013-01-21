@@ -1,7 +1,10 @@
 <?php
 namespace application\plugin\plupload
 {
+	require_once(__DIR__._DS_.'thirdparty'._DS_.'wideImage'._DS_.'WideImage.php');
+	
 	use nutshell\Nutshell;
+	use \WideImage;
 	
 	class ThumbnailMaker
 	{
@@ -18,8 +21,7 @@ namespace application\plugin\plupload
 		
 		public function calculateOrientation($file)
 		{
-			$image = new \SimpleImage();
-			$image->load($file);
+			$image = WideImage::load($file);
 			
 			if($image->getHeight() > $image->getWidth())
 			{
@@ -33,7 +35,6 @@ namespace application\plugin\plupload
 		
 		public function __construct()
 		{
-			require_once(__DIR__._DS_.'thirdparty'._DS_.'SimpleImage.php');
 			$config = Nutshell::getInstance()->config;
 			$this->outputDirectory	= $config->plugin->Plupload->thumbnail_dir;
 			$this->thumbnails		= $config->plugin->Plupload->thumbnails;
@@ -55,13 +56,14 @@ namespace application\plugin\plupload
 			$this->outFileName	= $outFileName;
 			$this->calculateOrientation($file);
 			
+			ini_set('memory_limit', '-1');
+			
 			// Output the image into each of the thumbnail sizes
 			foreach($this->thumbnails as $thumbnail)
 			{
 				$filepath = $this->getFilePath($thumbnail);
 				if (!file_exists($filepath)) @mkdir($filepath, 0755, true);
-				$image = new \SimpleImage();
-				$image->load($file);
+				$image = WideImage::load($file);
 				switch($thumbnail->constraint)
 				{
 					case 'scale':
@@ -85,86 +87,85 @@ namespace application\plugin\plupload
 		
 		private function stretchBestOrientation($image, $config)
 		{
-			// swap the thumbnail width and height if they don't match the image's orientation
-			if($image->getWidth() > $image->getHeight()) // image is landscape
-			{
-				if($config->height > $config->width) // config is portrait
-				{
-					// switch it
-					$temp			= $config->width;
-					$config->width	= $config->height;
-					$config->height	= $temp;
-				}
-			}
-			else // image is portrait
-			{
-				if($config->width > $config->height) // config is landscape
-				{
-					// switch it
-					$temp			= $config->width;
-					$config->width	= $config->height;
-					$config->height	= $temp;
-				}
-			}
-			$image->resize($config->width, $config->height);
-			$newFile = $this->getFilename($config);
-			$image->save($newFile);
+			// // swap the thumbnail width and height if they don't match the image's orientation
+			// if($image->getWidth() > $image->getHeight()) // image is landscape
+			// {
+			// 	if($config->height > $config->width) // config is portrait
+			// 	{
+			// 		// switch it
+			// 		$temp			= $config->width;
+			// 		$config->width	= $config->height;
+			// 		$config->height	= $temp;
+			// 	}
+			// }
+			// else // image is portrait
+			// {
+			// 	if($config->width > $config->height) // config is landscape
+			// 	{
+			// 		// switch it
+			// 		$temp			= $config->width;
+			// 		$config->width	= $config->height;
+			// 		$config->height	= $temp;
+			// 	}
+			// }
+			// $image->resize($config->width, $config->height);
+			// $newFile = $this->getFilename($config);
+			// $image->save($newFile);
 		}
 		
 		private function cropBestOrientation($image, $config)
 		{
-			// swap the thumbnail width and height if they don't match the image's orientation
-			if($image->getWidth() > $image->getHeight()) // image is landscape
-			{
-				if($config->height > $config->width) // config is portrait
-				{
-					// switch it
-					$temp			= $config->width;
-					$config->width	= $config->height;
-					$config->height	= $temp;
-				}
-				$image->cropToHeight($config->width, $config->height);
-			}
-			else // image is portrait
-			{
-				if($config->width > $config->height) // config is landscape
-				{
-					// switch it
-					$temp			= $config->width;
-					$config->width	= $config->height;
-					$config->height	= $temp;
-				}
-				$image->cropToWidth($config->width, $config->height);
-			}
-			$newFile = $this->getFilename($config);
-			$image->save($newFile);
+			// // swap the thumbnail width and height if they don't match the image's orientation
+			// if($image->getWidth() > $image->getHeight()) // image is landscape
+			// {
+			// 	if($config->height > $config->width) // config is portrait
+			// 	{
+			// 		// switch it
+			// 		$temp			= $config->width;
+			// 		$config->width	= $config->height;
+			// 		$config->height	= $temp;
+			// 	}
+			// 	$image->cropToHeight($config->width, $config->height);
+			// }
+			// else // image is portrait
+			// {
+			// 	if($config->width > $config->height) // config is landscape
+			// 	{
+			// 		// switch it
+			// 		$temp			= $config->width;
+			// 		$config->width	= $config->height;
+			// 		$config->height	= $temp;
+			// 	}
+			// 	$image->cropToWidth($config->width, $config->height);
+			// }
+			// $newFile = $this->getFilename($config);
+			// $image->save($newFile);
 		}
 		
 		private function crop($image, $config)
 		{
-			// swap the thumbnail width and height if they don't match the image's orientation
-			if($image->getWidth() > $image->getHeight()) // image is landscape
-			{
-				$image->cropToHeight($config->width, $config->height);
-			}
-			else // image is portrait
-			{
-				$image->cropToWidth($config->width, $config->height);
-			}
-			$newFile = $this->getFilename($config);
-			$image->save($newFile);
+			// // swap the thumbnail width and height if they don't match the image's orientation
+			// if($image->getWidth() > $image->getHeight()) // image is landscape
+			// {
+			// 	$image->cropToHeight($config->width, $config->height);
+			// }
+			// else // image is portrait
+			// {
+			// 	$image->cropToWidth($config->width, $config->height);
+			// }
+			// $newFile = $this->getFilename($config);
+			// $image->save($newFile);
 		}
 		
 		private function stretch($image, $config)
 		{
-			$image->resize($config->width, $config->height);
-			$newFile = $this->getFilename($config);
-			$image->save($newFile);
+			// Todo
 		}
 		
 		private function scale($image, $config)
 		{
-			//todo
+			$newFile = $this->getFilename($config);
+			$image->resize($config->width, $config->height)->saveToFile($newFile);
 		}
 		
 		private function getFilename($config)
