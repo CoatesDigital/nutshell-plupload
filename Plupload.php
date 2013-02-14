@@ -174,18 +174,20 @@ namespace application\plugin\plupload
 				}
 				return;
 			}
-			foreach(glob($file . '/*') as $subFile)
+			$dir = $file;
+			$files = array_diff(scandir($dir), array('.','..'));
+			foreach ($files as $file)
 			{
-				if(is_dir($subFile))
+				if(is_dir("$dir/$file"))
 				{
-					self::recursiveRemove($subFile);
+					$this->recursiveRemove("$dir/$file");
 				}
 				else
 				{
-					unlink($subFile);
+					unlink("$dir/$file");
 				}
 			}
-			rmdir($file);
+			return rmdir($dir);
 		}
 	}
 }
