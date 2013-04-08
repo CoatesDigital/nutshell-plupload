@@ -68,38 +68,53 @@ namespace application\plugin\plupload
 				case 'jpg':
 				case 'jpeg':
 				case 'png':
+					
 					// Make thumbnails from the image, store them in the thumbnail dir
 					$thumbnailMaker->processFile($filePathAndName);
+
 					// Move the image to the complete dir
 					rename($filePathAndName, $completed_dir.$basename);
+
 					break;
 					
 				case 'mp4':
+
 					// get a screenshot from the video, store it in the temp dir
 					$this->videoScreenshot($filePathAndName, $temporary_dir.$basename.'.png');
+				
 					// Make thumbnails from the screenshot, store them in the thumbnail dir
 					$thumbnailMaker->processFile($temporary_dir.$basename.'.png', $basename.'.png');
+
 					// delete the screenshot in the temporary dir
 					@unlink($temporary_dir.$basename.'.png');
+
 					// move the video to the complete dir
 					rename($filePathAndName, $completed_dir.$basename);
+
 					break;
 					
 				case 'zip':
+
 					// unzip the file into a directory by the same name in the temp dir
 					$this->unzip($filePathAndName, $temporary_dir.$filename);
+
 					// delete the original file
 					@unlink($filePathAndName);
+
 					// Make thumbnails from the provided 'preview.png', store them in the thumbnail dir
 					$previewFileName = $temporary_dir.$filename._DS_.'preview.png';
 					if(file_exists($previewFileName)) $thumbnailMaker->processFile($previewFileName, $basename.'.png');
+
 					// delete any existing folder in the complete dir by that name
 					$this->recursiveRemove($completed_dir.$filename);
+
 					// move the folder into the complete dir
 					rename($temporary_dir.$filename, $completed_dir.$filename);
+
 					break;
 					
 				default:
+
 					// Move the file to the complete dir
 					rename($filePathAndName, $completed_dir.$basename);
 			}
@@ -120,7 +135,7 @@ namespace application\plugin\plupload
 			// Check ffmpeg is configured
 			$config = Nutshell::getInstance()->config;
 			$ffmpeg_dir = $config->plugin->Plupload->ffmpeg_dir;
-			if(!$ffmpeg_dir) return;
+			if(!$ffmpeg_dir) throw new PluploadException(PluploadException::FFMPEG_NOT_CONFIGURED, $ffmpeg_dir);
 			
 			// Get the potision a percentage of the way in the video
 			$duration = $this->getVideoDuration($originalFile);

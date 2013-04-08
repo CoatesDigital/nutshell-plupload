@@ -10,6 +10,8 @@ namespace application\plugin\plupload
 	{
 		/** You cannot upload without data */
 		const MUST_HAVE_DATA = 1;
+
+		const FFMPEG_NOT_CONFIGURED = 2;
 	}
 }
-?>
+

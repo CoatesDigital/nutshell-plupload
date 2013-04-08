@@ -13,12 +13,24 @@ namespace application\plugin\plupload
 		private $outFileName		= null;
 		private $thumbnails			= null;
 		private $orientation		= '';
+		private $width				= 0;
+		private $height				= 0;
 		
 		public function getOrientation()
 		{
 			return $this->orientation;
 		}
 		
+		public function getWidth()
+		{
+			return $this->width;
+		}
+
+		public function getHeight()
+		{
+			return $this->height;
+		}
+
 		public function calculateOrientation($file)
 		{
 			$image = WideImage::load($file);
@@ -31,6 +43,9 @@ namespace application\plugin\plupload
 			{
 				$this->orientation = "landscape";
 			}
+
+			$this->width = $image->getWidth();
+			$this->height = $image->getHeight();
 		}
 		
 		public function __construct()
