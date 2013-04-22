@@ -84,6 +84,9 @@ namespace application\plugin\plupload
 					case 'scale':
 						$this->scale($image, $thumbnail);
 						break;
+					case 'scale-down':
+						$this->scaleDown($image, $thumbnail);
+						break;
 					case 'stretch':
 						$this->stretch($image, $thumbnail);
 						break;
@@ -181,6 +184,23 @@ namespace application\plugin\plupload
 		{
 			$newFile = $this->getFilename($config);
 			$image->resize($config->width, $config->height)->saveToFile($newFile);
+		}
+		
+		private function scaleDown($image, $config)
+		{
+			$newFile = $this->getFilename($config);
+			if($image->getWidth() > $config->width || $image->getHeight() > $config->height)
+			{
+				if($image->getWidth() > $image->getHeight())
+				{
+					$image = $image->resize($config->width, null);
+				}
+				else
+				{
+					$image = $image->resize(null, $config->height);
+				}
+			}
+			$image->saveToFile($newFile);
 		}
 		
 		private function getFilename($config)
