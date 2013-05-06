@@ -111,6 +111,9 @@ namespace application\plugin\plupload
 					// move the folder into the complete dir
 					rename($temporary_dir.$filename, $completed_dir.$filename);
 					rename($filePathAndName, $completed_dir.$filename . '.zip');
+					
+					$this->unzip($completed_dir.$filename . '.zip', $completed_dir.$filename);
+
 					break;
 					
 				default:
