@@ -99,7 +99,7 @@ namespace application\plugin\plupload
 					$this->unzip($filePathAndName, $temporary_dir.$filename);
 
 					// delete the original file
-					@unlink($filePathAndName);
+					//@unlink($filePathAndName);
 
 					// Make thumbnails from the provided 'preview.png', store them in the thumbnail dir
 					$previewFileName = $temporary_dir.$filename._DS_.'preview.png';
@@ -110,7 +110,7 @@ namespace application\plugin\plupload
 
 					// move the folder into the complete dir
 					rename($temporary_dir.$filename, $completed_dir.$filename);
-
+					rename($filePathAndName, $completed_dir.$filename . '.zip');
 					break;
 					
 				default:
