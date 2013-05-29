@@ -63,6 +63,7 @@ namespace application\plugin\plupload
 			// Create thumbnail, move to complete dir
 			if (!file_exists($thumbnail_dir)) @mkdir($thumbnail_dir, 0755, true);
 			if (!file_exists($completed_dir)) @mkdir($completed_dir, 0755, true);
+                        if (!file_exists($temporary_dir)) @mkdir($temporary_dir, 0755, true);
 			switch($extension)
 			{
 				case 'jpg':
