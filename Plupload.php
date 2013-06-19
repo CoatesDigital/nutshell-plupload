@@ -63,7 +63,7 @@ namespace application\plugin\plupload
 			// Create thumbnail, move to complete dir
 			if (!file_exists($thumbnail_dir)) @mkdir($thumbnail_dir, 0755, true);
 			if (!file_exists($completed_dir)) @mkdir($completed_dir, 0755, true);
-                        if (!file_exists($temporary_dir)) @mkdir($temporary_dir, 0755, true);
+            if (!file_exists($temporary_dir)) @mkdir($temporary_dir, 0755, true);
 			switch($extension)
 			{
 				case 'jpg':
@@ -99,9 +99,6 @@ namespace application\plugin\plupload
 					// unzip the file into a directory by the same name in the temp dir
 					$this->unzip($filePathAndName, $temporary_dir.$filename);
 
-					// delete the original file
-					//@unlink($filePathAndName);
-
 					// Make thumbnails from the provided 'preview.png', store them in the thumbnail dir
 					$previewFileName = $temporary_dir.$filename._DS_.'preview.png';
 					if(file_exists($previewFileName)) $thumbnailMaker->processFile($previewFileName, $basename.'.png');
@@ -109,12 +106,10 @@ namespace application\plugin\plupload
 					// delete any existing folder in the complete dir by that name
 					$this->recursiveRemove($completed_dir.$filename);
 
-					// move the folder into the complete dir
+					// move the folder & file into the complete dir
 					rename($temporary_dir.$filename, $completed_dir.$filename);
 					rename($filePathAndName, $completed_dir.$filename . '.zip');
 					
-					$this->unzip($completed_dir.$filename . '.zip', $completed_dir.$filename);
-
 					break;
 					
 				default:
@@ -146,7 +141,7 @@ namespace application\plugin\plupload
 			$position = ($duration * ($percentage / 100));
 			
 			// save the screenshot
-			$command = "\"{$ffmpeg_dir}ffmpeg\" -i \"$originalFile\" -ss $position -f image2 \"$newFile\"";
+			$command = "\"{$ffmpeg_dir}ffmpeg\" -loglevel quiet -i \"$originalFile\" -ss $position -f image2 \"$newFile\"";
 			shell_exec($command);
 		}
 		
@@ -163,6 +158,11 @@ namespace application\plugin\plupload
 			ob_end_clean();
 			
 			preg_match('/Duration: (.*?),/', $result, $matches);
+			if(sizeof($matches) < 2)
+			{
+				throw new PluploadException("Failed to get video duration of $filename", $command, $result, $matches);
+			}
+			
 			$duration = $matches[1];
 			
 			if($seconds)
