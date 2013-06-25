@@ -142,6 +142,7 @@ namespace application\plugin\plupload
 			
 			// save the screenshot
 			$command = "\"{$ffmpeg_dir}ffmpeg\" -loglevel quiet -i \"$originalFile\" -ss $position -f image2 \"$newFile\"";
+			\application\helper\DebugHelper::traceToFile('plupload-exec.log', $command);
 			shell_exec($command);
 		}
 		
@@ -153,6 +154,7 @@ namespace application\plugin\plupload
 			
 			ob_start();
 			$command = "\"{$ffmpeg_dir}ffmpeg\" -i \"$filename\" 2>&1";
+			\application\helper\DebugHelper::traceToFile('plupload-exec.log', $command);
 			passthru($command);
 			$result = ob_get_contents();
 			ob_end_clean();
