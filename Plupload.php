@@ -49,7 +49,7 @@ namespace application\plugin\plupload
 		public function uploadComplete($filePathAndName)
 		{
 			$config = Nutshell::getInstance()->config;
-			$completed_dir = $config->plugin->Plupload->completed_dir;
+			$unpublished_dir = $config->plugin->Plupload->unpublished_dir;
 			$thumbnail_dir = $config->plugin->Plupload->thumbnail_dir;
 			$temporary_dir = $config->plugin->Plupload->temporary_dir;
 			$pathinfo	= pathinfo($filePathAndName);
@@ -62,7 +62,7 @@ namespace application\plugin\plupload
 			
 			// Create thumbnail, move to complete dir
 			if (!file_exists($thumbnail_dir)) @mkdir($thumbnail_dir, 0755, true);
-			if (!file_exists($completed_dir)) @mkdir($completed_dir, 0755, true);
+			if (!file_exists($unpublished_dir)) @mkdir($unpublished_dir, 0755, true);
             if (!file_exists($temporary_dir)) @mkdir($temporary_dir, 0755, true);
 			switch($extension)
 			{
@@ -74,7 +74,7 @@ namespace application\plugin\plupload
 					$thumbnailMaker->processFile($filePathAndName);
 
 					// Move the image to the complete dir
-					rename($filePathAndName, $completed_dir.$basename);
+					rename($filePathAndName, $unpublished_dir.$basename);
 
 					break;
 					
@@ -90,7 +90,7 @@ namespace application\plugin\plupload
 					@unlink($temporary_dir.$basename.'.png');
 
 					// move the video to the complete dir
-					rename($filePathAndName, $completed_dir.$basename);
+					rename($filePathAndName, $unpublished_dir.$basename);
 
 					break;
 					
@@ -104,18 +104,18 @@ namespace application\plugin\plupload
 					if(file_exists($previewFileName)) $thumbnailMaker->processFile($previewFileName, $basename.'.png');
 
 					// delete any existing folder in the complete dir by that name
-					$this->recursiveRemove($completed_dir.$filename);
+					$this->recursiveRemove($unpublished_dir.$filename);
 
 					// move the folder & file into the complete dir
-					rename($temporary_dir.$filename, $completed_dir.$filename);
-					rename($filePathAndName, $completed_dir.$filename . '.zip');
+					rename($temporary_dir.$filename, $unpublished_dir.$filename);
+					rename($filePathAndName, $unpublished_dir.$filename . '.zip');
 					
 					break;
 					
 				default:
 
 					// Move the file to the complete dir
-					rename($filePathAndName, $completed_dir.$basename);
+					rename($filePathAndName, $unpublished_dir.$basename);
 			}
 			
 			// process any extra stuff
