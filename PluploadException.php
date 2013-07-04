@@ -12,6 +12,8 @@ namespace application\plugin\plupload
 		const MUST_HAVE_DATA = 1;
 
 		const FFMPEG_NOT_CONFIGURED = 2;
+		
+		const ILLEGAL_FILENAME = 3;
 	}
 }
 

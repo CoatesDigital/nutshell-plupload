@@ -17,6 +17,7 @@ class PluploadProcessor
 	private $maxExecutionTime	= null; // 5 minutes execution time
 	private $filenameCleanRegex	= null;
 	private $callback			= null;
+	private $illegalCharacters	= null;
 	
 	public function __construct()
 	{
@@ -26,6 +27,7 @@ class PluploadProcessor
 		$this->maxExecutionTime		= 5 * 60;
 		$this->filenameCleanRegex	= '/[^\w\._]+/';
 		$this->callback				= null;
+		$this->illegalCharacters	= '\\';
 	}
 	
 	public function getTargetDir()
@@ -94,6 +96,17 @@ class PluploadProcessor
 	    return $this;
 	}
 	
+	public function getIllegalCharacters()
+	{
+	    return $this->illegalCharacters;
+	}
+	
+	public function setIllegalCharacters($illegalCharacters)
+	{
+	    $this->illegalCharacters = $illegalCharacters;
+	    return $this;
+	}
+	
 	public function process()
 	{
 		// HTTP headers for no cache etc
@@ -110,6 +123,7 @@ class PluploadProcessor
 		$maxExecutionTime	= $this->maxExecutionTime;
 		$filenameCleanRegex	= $this->filenameCleanRegex;
 		$callback			= $this->callback;
+		$illegalCharacters	= $this->illegalCharacters;
 		
 		@set_time_limit($maxExecutionTime);
 
@@ -117,10 +131,22 @@ class PluploadProcessor
 		$chunk = isset($_REQUEST["chunk"]) ? intval($_REQUEST["chunk"]) : 0;
 		$chunks = isset($_REQUEST["chunks"]) ? intval($_REQUEST["chunks"]) : 0;
 		$fileName = isset($_REQUEST["name"]) ? $_REQUEST["name"] : '';
+		
+		$illegalCharacters = str_split($illegalCharacters);
+		foreach($illegalCharacters as $illegalCharacter)
+		{
+			if(stristr($fileName, $illegalCharacter))
+			{
+				throw new application\plugin\plupload\PluploadException(application\plugin\plupload\PluploadException::ILLEGAL_FILENAME, $fileName, $illegalCharacter, $illegalCharacters);
+			}
+		}
 
 		// Clean the fileName for security reasons
-		$fileName = preg_replace($filenameCleanRegex, '_', $fileName);
-
+		if($filenameCleanRegex)
+		{
+			$fileName = preg_replace($filenameCleanRegex, '_', $fileName);
+		}
+		
 		// Make sure the fileName is unique but only if chunking is disabled
 		if ($chunks < 2 && file_exists($targetDir . DIRECTORY_SEPARATOR . $fileName))
 		{

@@ -43,6 +43,7 @@ namespace application\plugin\plupload
 			$plupload = new \PluploadProcessor();
 			$plupload->setTargetDir($temporary_dir);
 			$plupload->setCallback(array($this, 'uploadComplete'));
+			$plupload->setFilenameCleanRegex(null);
 			$plupload->process();
 		}
 		
