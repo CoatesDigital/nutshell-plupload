@@ -49,6 +49,8 @@ namespace application\plugin\plupload
 		
 		public function uploadComplete($filePathAndName)
 		{
+
+			
 			$config = Nutshell::getInstance()->config;
 			$unpublished_dir = $config->plugin->Plupload->unpublished_dir;
 			$thumbnail_dir = $config->plugin->Plupload->thumbnail_dir;
@@ -56,9 +58,12 @@ namespace application\plugin\plupload
 			$pathinfo	= pathinfo($filePathAndName);
 			$basename	= $pathinfo['basename'];	// eg. myImage.jpg
 			$filename 	= $pathinfo['filename'];	// eg. myImage
-			$extension	= $pathinfo['extension'];	// eg. jpg
-			$extension = strtolower($extension);
+			$extension	= strtolower($pathinfo['extension']);	// eg. jpg
 			
+			echo "PLupload arg: " . $filePathAndName . "\n";
+			echo "PLupload filename: " . $filename . "\n";
+			echo "PLupload basename: " . $basename . "\n";
+
 			$thumbnailMaker = new ThumbnailMaker();
 			
 			// Create thumbnail, move to complete dir
@@ -82,41 +87,54 @@ namespace application\plugin\plupload
 				case 'mp4':
 
 					// get a screenshot from the video, store it in the temp dir
-					$this->videoScreenshot($filePathAndName, $temporary_dir.$basename.'.png');
+					$this->videoScreenshot($filePathAndName, $temporary_dir . $basename . '.png');
 				
 					// Make thumbnails from the screenshot, store them in the thumbnail dir
-					$thumbnailMaker->processFile($temporary_dir.$basename.'.png', $basename.'.png');
+					$thumbnailMaker->processFile($temporary_dir . $basename . '.png', $basename.'.png');
 
 					// delete the screenshot in the temporary dir
-					@unlink($temporary_dir.$basename.'.png');
+					@unlink($temporary_dir . $basename . '.png');
 
 					// move the video to the complete dir
-					rename($filePathAndName, $unpublished_dir.$basename);
+					$destinationFilename = '"' . $unpublished_dir . $basename . '"';
+					exec("mv $filePathAndName $destinationFilename");
 
 					break;
 					
 				case 'zip':
 
 					// unzip the file into a directory by the same name in the temp dir
-					$this->unzip($filePathAndName, $temporary_dir.$filename);
+					$this->unzip($filePathAndName, $temporary_dir . $filename);
 
 					// Make thumbnails from the provided 'preview.png', store them in the thumbnail dir
-					$previewFileName = $temporary_dir.$filename._DS_.'preview.png';
-					if(file_exists($previewFileName)) $thumbnailMaker->processFile($previewFileName, $basename.'.png');
+					$previewFileName = '"' . $temporary_dir . $filename . _DS_ . 'preview.png' . '"';
+					echo "5%%%%%%%%%%%%%%%%%%%% preview file name " . $previewFileName . "\n";
+					echo "5%%%%%%%%%%%%%%%%%%%% base file name " . $basename . "\n";
+					clearstatcache();
+					var_dump(file_exists($previewFileName));
+					if(file_exists($previewFileName)) $thumbnailMaker->processFile($previewFileName, $basename . '.png');
 
 					// delete any existing folder in the complete dir by that name
-					$this->recursiveRemove($unpublished_dir.$filename);
+					$this->recursiveRemove($unpublished_dir . $filename);
 
 					// move the folder & file into the complete dir
-					rename($temporary_dir.$filename, $unpublished_dir.$filename);
-					rename($filePathAndName, $unpublished_dir.$filename . '.zip');
-					
+					// folder
+					$sourceFilename = '"' . $temporary_dir . $filename . '"';
+					$destinationFilename = '"' . $unpublished_dir . $filename . '"';
+					$command = "mv -f $sourceFilename $destinationFilename";
+					// exec($command);
+					// zip
+					$sourceFilename = '"' . $filePathAndName . '"';
+					$destinationFilename = '"' . $unpublished_dir . $filename . '.zip"';
+					$command = "mv -f $sourceFilename $destinationFilename";
+					// exec($command);
+
 					break;
 					
 				default:
 
 					// Move the file to the complete dir
-					rename($filePathAndName, $unpublished_dir.$basename);
+					rename($filePathAndName, $unpublished_dir . $basename);
 			}
 			
 			// process any extra stuff
@@ -178,12 +196,16 @@ namespace application\plugin\plupload
 		
 		private function unzip($file, $directory)
 		{
-			$zipArchive = new \ZipArchive();
-			$result = $zipArchive->open($file);
-			if ($result) {
-				$zipArchive ->extractTo($directory);
-				$zipArchive ->close();
-			}
+
+			
+			// $file = str_replace( "\"", "&quot;", $file);
+			echo "######## unZip: file - " . $file . "\n";
+			echo "######## unZip: directory - " . $directory . "\n";
+			// $zipArchive = new \ZipArchive();
+			// $result = $zipArchive->open('"' . $file . '"');
+			echo "Zip Open result" . "unzip $file -d $directory" . "\n";
+
+			exec("unzip \"$file\" -d \"$directory\"");
 		}
 		
 		private function recursiveRemove($file)
