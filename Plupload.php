@@ -112,6 +112,8 @@ namespace application\plugin\plupload
 					echo "5%%%%%%%%%%%%%%%%%%%% base file name " . $basename . "\n";
 					clearstatcache();
 					var_dump(file_exists($previewFileName));
+
+					$command = "test -f $previewFileName";
 					if(file_exists($previewFileName)) $thumbnailMaker->processFile($previewFileName, $basename . '.png');
 
 					// delete any existing folder in the complete dir by that name
@@ -203,9 +205,12 @@ namespace application\plugin\plupload
 			echo "######## unZip: directory - " . $directory . "\n";
 			// $zipArchive = new \ZipArchive();
 			// $result = $zipArchive->open('"' . $file . '"');
-			echo "Zip Open result" . "unzip $file -d $directory" . "\n";
+			echo "Zip Open result: " . "unzip -o \"$file\" -d \"$directory\"" . "\n";
+			$output = array();
+			$return = 0;
+			exec("unzip -o \"$file\" -d \"$directory\"", $output, $return);
 
-			exec("unzip \"$file\" -d \"$directory\"");
+			var_dump($output, $return);
 		}
 		
 		private function recursiveRemove($file)
