@@ -60,10 +60,6 @@ namespace application\plugin\plupload
 			$filename 	= $pathinfo['filename'];	// eg. myImage
 			$extension	= strtolower($pathinfo['extension']);	// eg. jpg
 			
-			echo "PLupload arg: " . $filePathAndName . "\n";
-			echo "PLupload filename: " . $filename . "\n";
-			echo "PLupload basename: " . $basename . "\n";
-
 			$thumbnailMaker = new ThumbnailMaker();
 			
 			// Create thumbnail, move to complete dir
@@ -108,10 +104,8 @@ namespace application\plugin\plupload
 
 					// Make thumbnails from the provided 'preview.png', store them in the thumbnail dir
 					$previewFileName = '"' . $temporary_dir . $filename . _DS_ . 'preview.png' . '"';
-					echo "5%%%%%%%%%%%%%%%%%%%% preview file name " . $previewFileName . "\n";
-					echo "5%%%%%%%%%%%%%%%%%%%% base file name " . $basename . "\n";
+					
 					clearstatcache();
-					var_dump(file_exists($previewFileName));
 
 					$command = "test -f $previewFileName";
 					if(file_exists($previewFileName)) $thumbnailMaker->processFile($previewFileName, $basename . '.png');
@@ -124,12 +118,13 @@ namespace application\plugin\plupload
 					$sourceFilename = '"' . $temporary_dir . $filename . '"';
 					$destinationFilename = '"' . $unpublished_dir . $filename . '"';
 					$command = "mv -f $sourceFilename $destinationFilename";
-					// exec($command);
+					exec($command);
+
 					// zip
 					$sourceFilename = '"' . $filePathAndName . '"';
 					$destinationFilename = '"' . $unpublished_dir . $filename . '.zip"';
 					$command = "mv -f $sourceFilename $destinationFilename";
-					// exec($command);
+					exec($command);
 
 					break;
 					
@@ -198,19 +193,10 @@ namespace application\plugin\plupload
 		
 		private function unzip($file, $directory)
 		{
-
-			
-			// $file = str_replace( "\"", "&quot;", $file);
-			echo "######## unZip: file - " . $file . "\n";
-			echo "######## unZip: directory - " . $directory . "\n";
-			// $zipArchive = new \ZipArchive();
-			// $result = $zipArchive->open('"' . $file . '"');
-			echo "Zip Open result: " . "unzip -o \"$file\" -d \"$directory\"" . "\n";
+			// n.b. this make the plupload non compatible with windows
 			$output = array();
 			$return = 0;
 			exec("unzip -o \"$file\" -d \"$directory\"", $output, $return);
-
-			var_dump($output, $return);
 		}
 		
 		private function recursiveRemove($file)

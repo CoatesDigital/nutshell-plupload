@@ -67,7 +67,6 @@ namespace application\plugin\plupload
 		
 		public function processFile($file, $outFileName=null)
 		{
-			echo __LINE_. __METHOD__;
 			if(!is_readable($file))
 			{
 				throw new PluploadException('Cannot process file. File not readable.', $file);
