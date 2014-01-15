@@ -197,6 +197,7 @@ namespace application\plugin\plupload
 			$output = array();
 			$return = 0;
 			exec("unzip -o \"$file\" -d \"$directory\"", $output, $return);
+			exec("chmod -R a+rX \"$directory\"");
 		}
 		
 		private function recursiveRemove($file)
