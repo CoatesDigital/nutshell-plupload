@@ -103,11 +103,7 @@ namespace application\plugin\plupload
 					$this->unzip($filePathAndName, $temporary_dir . $filename);
 
 					// Make thumbnails from the provided 'preview.png', store them in the thumbnail dir
-					$previewFileName = '"' . $temporary_dir . $filename . _DS_ . 'preview.png' . '"';
-					
-					clearstatcache();
-
-					$command = "test -f $previewFileName";
+					$previewFileName = $temporary_dir . $filename . _DS_ . 'preview.png';
 					if(file_exists($previewFileName)) $thumbnailMaker->processFile($previewFileName, $basename . '.png');
 
 					// delete any existing folder in the complete dir by that name
