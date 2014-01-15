@@ -72,7 +72,9 @@ namespace application\plugin\plupload
 				throw new PluploadException('Cannot process file. File not readable.', $file);
 			}
 			
-			$this->filename	= '"' . $file . '"';
+			// commented out as it stops generation, need to differentiate between php and bash better
+			// $this->filename	= '"' . $file . '"';
+			$this->filename	= $file;
 			$this->outFileName	= $outFileName;
 			$this->calculateOrientation($file);
 			
