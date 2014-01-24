@@ -17,6 +17,7 @@ namespace application\plugin\plupload
 		}
 		
 		private $callback = null;
+		private $checkMethod = null;
 		
 		public function getCallback()
 		{
@@ -26,6 +27,17 @@ namespace application\plugin\plupload
 		public function setCallback($callback)
 		{
 		    $this->callback = $callback;
+		    return $this;
+		}
+		
+		public function getCheck()
+		{
+		    return $this->check;
+		}
+		
+		public function setCheck($check)
+		{
+		    $this->checkMethod = $check;
 		    return $this;
 		}
 		
@@ -49,8 +61,6 @@ namespace application\plugin\plupload
 		
 		public function uploadComplete($filePathAndName)
 		{
-
-			
 			$config = Nutshell::getInstance()->config;
 			$unpublished_dir = $config->plugin->Plupload->unpublished_dir;
 			$thumbnail_dir = $config->plugin->Plupload->thumbnail_dir;
@@ -59,7 +69,17 @@ namespace application\plugin\plupload
 			$basename	= $pathinfo['basename'];	// eg. myImage.jpg
 			$filename 	= $pathinfo['filename'];	// eg. myImage
 			$extension	= strtolower($pathinfo['extension']);	// eg. jpg
-			
+		
+			// perform any check method
+			if($this->checkMethod)
+			{
+				call_user_func_array
+				(
+					$this->checkMethod,
+					array($filePathAndName)
+				 );
+			}
+	
 			$thumbnailMaker = new ThumbnailMaker();
 			
 			// Create thumbnail, move to complete dir
