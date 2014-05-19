@@ -113,7 +113,7 @@ namespace application\plugin\plupload
 
 					// move the video to the complete dir
 					$destinationFilename = '"' . $unpublished_dir . $basename . '"';
-					exec("mv $filePathAndName $destinationFilename");
+					exec("mv \"$filePathAndName\" $destinationFilename");
 
 					break;
 					
