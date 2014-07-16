@@ -41,6 +41,10 @@ namespace application\plugin\plupload
 		    return $this;
 		}
 		
+		/**
+		 * This will handle the upload of a file to upload_dir,
+		 * then call uploadComplete
+		 */
 		public function upload()
 		{
 			// Check for Data
@@ -50,25 +54,29 @@ namespace application\plugin\plupload
 			}
 			
 			$config = Nutshell::getInstance()->config;
-			$temporary_dir = $config->plugin->Plupload->temporary_dir;
+			$upload_dir = $config->plugin->Plupload->upload_dir;
 			
 			$plupload = new \PluploadProcessor();
-			$plupload->setTargetDir($temporary_dir);
+			$plupload->setTargetDir($upload_dir);
 			$plupload->setCallback(array($this, 'uploadComplete'));
 			$plupload->setFilenameCleanRegex(null);
 			$plupload->process();
 		}
 		
+		/**
+		 * Provided the full path to a file, this will generate thumbnails in thumbnail_dir,
+		 * then move the file to destination_dir.
+		 */
 		public function uploadComplete($filePathAndName)
 		{
 			$config = Nutshell::getInstance()->config;
-			$unpublished_dir = $config->plugin->Plupload->unpublished_dir;
+			$destination_dir = $config->plugin->Plupload->destination_dir;
 			$thumbnail_dir = $config->plugin->Plupload->thumbnail_dir;
-			$temporary_dir = $config->plugin->Plupload->temporary_dir;
 			$pathinfo	= pathinfo($filePathAndName);
-			$basename	= $pathinfo['basename'];	// eg. myImage.jpg
-			$filename 	= $pathinfo['filename'];	// eg. myImage
+			$dirname	= $pathinfo['dirname'] . _DS_;			// eg. /tmp/uploaded/
+			$basename	= $pathinfo['basename'];				// eg. myImage.JPG
 			$extension	= strtolower($pathinfo['extension']);	// eg. jpg
+			$filename 	= $pathinfo['filename'];				// eg. myImage
 		
 			// perform any check method
 			if($this->checkMethod)
@@ -84,8 +92,8 @@ namespace application\plugin\plupload
 			
 			// Create thumbnail, move to complete dir
 			if (!file_exists($thumbnail_dir)) @mkdir($thumbnail_dir, 0755, true);
-			if (!file_exists($unpublished_dir)) @mkdir($unpublished_dir, 0755, true);
-            if (!file_exists($temporary_dir)) @mkdir($temporary_dir, 0755, true);
+			if (!file_exists($destination_dir)) @mkdir($destination_dir, 0755, true);
+            if (!file_exists($dirname)) @mkdir($dirname, 0755, true);
 			switch($extension)
 			{
 				case 'jpg':
@@ -96,23 +104,23 @@ namespace application\plugin\plupload
 					$thumbnailMaker->processFile($filePathAndName);
 
 					// Move the image to the complete dir
-					rename($filePathAndName, $unpublished_dir.$basename);
+					rename($filePathAndName, $destination_dir.$basename);
 
 					break;
 					
 				case 'mp4':
 
 					// get a screenshot from the video, store it in the temp dir
-					$this->videoScreenshot($filePathAndName, $temporary_dir . $basename . '.png');
+					$this->videoScreenshot($filePathAndName, $dirname . $basename . '.png');
 				
 					// Make thumbnails from the screenshot, store them in the thumbnail dir
-					$thumbnailMaker->processFile($temporary_dir . $basename . '.png', $basename.'.png');
+					$thumbnailMaker->processFile($dirname . $basename . '.png', $basename.'.png');
 
 					// delete the screenshot in the temporary dir
-					@unlink($temporary_dir . $basename . '.png');
+					@unlink($dirname . $basename . '.png');
 
 					// move the video to the complete dir
-					$destinationFilename = '"' . $unpublished_dir . $basename . '"';
+					$destinationFilename = '"' . $destination_dir . $basename . '"';
 					exec("mv \"$filePathAndName\" $destinationFilename");
 
 					break;
@@ -120,25 +128,25 @@ namespace application\plugin\plupload
 				case 'zip':
 
 					// unzip the file into a directory by the same name in the temp dir
-					$this->unzip($filePathAndName, $temporary_dir . $filename);
+					$this->unzip($filePathAndName, $dirname . $filename);
 
 					// Make thumbnails from the provided 'preview.png', store them in the thumbnail dir
-					$previewFileName = $temporary_dir . $filename . _DS_ . 'preview.png';
+					$previewFileName = $dirname . $filename . _DS_ . 'preview.png';
 					if(file_exists($previewFileName)) $thumbnailMaker->processFile($previewFileName, $basename . '.png');
 
 					// delete any existing folder in the complete dir by that name
-					$this->recursiveRemove($unpublished_dir . $filename);
+					$this->recursiveRemove($destination_dir . $filename);
 
 					// move the folder & file into the complete dir
 					// folder
-					$sourceFilename = '"' . $temporary_dir . $filename . '"';
-					$destinationFilename = '"' . $unpublished_dir . $filename . '"';
+					$sourceFilename = '"' . $dirname . $filename . '"';
+					$destinationFilename = '"' . $destination_dir . $filename . '"';
 					$command = "mv -f $sourceFilename $destinationFilename";
 					exec($command);
 
 					// zip
 					$sourceFilename = '"' . $filePathAndName . '"';
-					$destinationFilename = '"' . $unpublished_dir . $filename . '.zip"';
+					$destinationFilename = '"' . $destination_dir . $filename . '.zip"';
 					$command = "mv -f $sourceFilename $destinationFilename";
 					exec($command);
 
@@ -147,7 +155,7 @@ namespace application\plugin\plupload
 				default:
 
 					// Move the file to the complete dir
-					rename($filePathAndName, $unpublished_dir . $basename);
+					rename($filePathAndName, $destination_dir . $basename);
 			}
 			
 			// process any extra stuff
