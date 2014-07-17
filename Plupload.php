@@ -40,8 +40,7 @@ namespace application\plugin\plupload
 				throw new PluploadException(PluploadException::MUST_HAVE_DATA, $_SERVER);
 			}
 			
-			$config = Nutshell::getInstance()->config;
-			if(!$upload_dir) $upload_dir = $config->plugin->Plupload->upload_dir;
+			if(!$upload_dir) $upload_dir = Nutshell::getInstance()->config->plugin->Plupload->upload_dir;
 			
 			$plupload = new \PluploadProcessor();
 			$plupload->setTargetDir($upload_dir);
@@ -56,11 +55,10 @@ namespace application\plugin\plupload
 		 * Returns true on supported files, otherwise false.
 		 * Supports Images and Video.
 		 */
-		public function generateThumbnails($filePathAndName, $thumbnail_dir=false)
+		public function generateThumbnails($originalFilePath, $thumbnail_dir=false)
 		{
-			$config = Nutshell::getInstance()->config->plugin->Plupload;
-			if(!$thumbnail_dir) $thumbnail_dir = $config->thumbnail_dir;
-			$pathinfo	= pathinfo($filePathAndName);
+			if(!$thumbnail_dir) $thumbnail_dir = Nutshell::getInstance()->config->plugin->Plupload->thumbnail_dir;
+			$pathinfo	= pathinfo($originalFilePath);
 			$dirname	= $pathinfo['dirname'] . _DS_;			// eg. /tmp/uploaded/
 			$basename	= $pathinfo['basename'];				// eg. myImage.JPG
 			$extension	= strtolower($pathinfo['extension']);	// eg. jpg
@@ -77,14 +75,14 @@ namespace application\plugin\plupload
 				case 'png':
 					
 					// Make thumbnails from the image, store them in the thumbnail dir
-					$thumbnailMaker->processFile($filePathAndName);
+					$thumbnailMaker->processFile($originalFilePath);
 
 					return true;
 					
 				case 'mp4':
 
 					// get a screenshot from the video, store it in the temp dir
-					$this->videoScreenshot($filePathAndName, $dirname . $basename . '.png');
+					$this->videoScreenshot($originalFilePath, $dirname . $basename . '.png');
 				
 					// Make thumbnails from the screenshot, store them in the thumbnail dir
 					$thumbnailMaker->processFile($dirname . $basename . '.png', $basename.'.png');
@@ -103,8 +101,7 @@ namespace application\plugin\plupload
 		public function videoScreenshot($originalFile, $newFile, $percentage = 10)
 		{
 			// Check ffmpeg is configured
-			$config = Nutshell::getInstance()->config;
-			$ffmpeg_dir = $config->plugin->Plupload->ffmpeg_dir;
+			$ffmpeg_dir = Nutshell::getInstance()->config->plugin->Plupload->ffmpeg_dir;
 			if(!$ffmpeg_dir) throw new PluploadException(PluploadException::FFMPEG_NOT_CONFIGURED, $ffmpeg_dir);
 			
 			// Get the potision a percentage of the way in the video
@@ -119,8 +116,7 @@ namespace application\plugin\plupload
 		
 		public function getVideoDuration($filename, $seconds = true)
 		{
-			$config = Nutshell::getInstance()->config;
-			$ffmpeg_dir = $config->plugin->Plupload->ffmpeg_dir;
+			$ffmpeg_dir = Nutshell::getInstance()->config->plugin->Plupload->ffmpeg_dir;
 			if(!$ffmpeg_dir) return;
 			
 			ob_start();

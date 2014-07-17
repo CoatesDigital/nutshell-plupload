@@ -8,9 +8,9 @@ namespace application\plugin\plupload
 	
 	class ThumbnailMaker
 	{
-		private $filename			= '';
+		private $originalFilePath	= '';
 		private $outputDirectory	= '';
-		private $outFileName		= null;
+		private $desiredBasename	= null;
 		private $thumbnails			= null;
 		private $orientation		= '';
 		private $width				= 0;
@@ -31,9 +31,9 @@ namespace application\plugin\plupload
 			return $this->height;
 		}
 
-		public function calculateOrientation($file)
+		public function calculateOrientation($path)
 		{
-			$image = WideImage::load($file);
+			$image = WideImage::load($path);
 			
 			if($image->getHeight() > $image->getWidth())
 			{
@@ -65,27 +65,38 @@ namespace application\plugin\plupload
 			}
 		}
 		
-		public function processFile($file, $outFileName=null)
+		public function processFile($originalFilePath, $desiredBasename=null, $outputDirectory=null)
 		{
-			if(!is_readable($file))
+			if(!is_readable($originalFilePath))
 			{
-				throw new PluploadException('Cannot process file. File not readable.', $file);
+				throw new PluploadException('Cannot process file. File not readable.', $originalFilePath);
+			}
+			
+			// eg file.mov becomes file.mov.png
+			if(!$desiredBasename)
+			{
+				$desiredBasename = pathinfo($originalFilePath, PATHINFO_BASENAME) . '.png';
+			}
+			
+			if($outputDirectory)
+			{
+				$this->outputDirectory = $outputDirectory;
 			}
 			
 			// commented out as it stops generation, need to differentiate between php and bash better
-			// $this->filename	= '"' . $file . '"';
-			$this->filename	= $file;
-			$this->outFileName	= $outFileName;
-			$this->calculateOrientation($file);
+			// $this->originalFilePath	= '"' . $originalFilePath . '"';
+			$this->originalFilePath	= $originalFilePath;
+			$this->desiredBasename = $desiredBasename;
+			$this->calculateOrientation($originalFilePath);
 			
 			ini_set('memory_limit', '-1');
 			
 			// Output the image into each of the thumbnail sizes
 			foreach($this->thumbnails as $thumbnail)
 			{
-				$filepath = $this->getFilePath($thumbnail);
-				if (!file_exists($filepath)) @mkdir($filepath, 0755, true);
-				$image = WideImage::load($file);
+				$thumbnailPath = $this->getPath($thumbnail);
+				if (!file_exists($thumbnailPath)) @mkdir($thumbnailPath, 0755, true);
+				$image = WideImage::load($thumbnailPath);
 				switch($thumbnail->constraint)
 				{
 					case 'scale':
@@ -134,7 +145,7 @@ namespace application\plugin\plupload
 			// 	}
 			// }
 			// $image->resize($config->width, $config->height);
-			// $newFile = $this->getFilename($config);
+			// $newFile = $this->getPath($config);
 			// $image->save($newFile);
 		}
 		
@@ -163,7 +174,7 @@ namespace application\plugin\plupload
 			// 	}
 			// 	$image->cropToWidth($config->width, $config->height);
 			// }
-			// $newFile = $this->getFilename($config);
+			// $newFile = $this->getPath($config);
 			// $image->save($newFile);
 		}
 		
@@ -178,7 +189,7 @@ namespace application\plugin\plupload
 			// {
 			// 	$image->cropToWidth($config->width, $config->height);
 			// }
-			// $newFile = $this->getFilename($config);
+			// $newFile = $this->getPath($config);
 			// $image->save($newFile);
 		}
 		
@@ -189,13 +200,13 @@ namespace application\plugin\plupload
 		
 		private function scale($image, $config)
 		{
-			$newFile = $this->getFilename($config);
+			$newFile = $this->getPath($config);
 			$image->resize($config->width, $config->height)->saveToFile($newFile);
 		}
 		
 		private function scaleDown($image, $config)
 		{
-			$newFile = $this->getFilename($config);
+			$newFile = $this->getPath($config);
 			if($image->getWidth() > $config->width || $image->getHeight() > $config->height)
 			{
 				if($image->getWidth() > $image->getHeight())
@@ -210,26 +221,16 @@ namespace application\plugin\plupload
 			$image->saveToFile($newFile);
 		}
 		
-		private function getFilename($config)
+		// eg: /thumbnails/100x200/movie.mp4.png
+		private function getPath($config)
 		{
-			$filepath = $this->getFilePath($config);
-			
-			$basename = $this->outFileName;
-			if(!$basename)
-			{
-				$pathinfo = pathinfo($this->filename);
-				$basename = $pathinfo['basename'];
-				$basename = $basename.'.png';
-			}
-			
-			$filename = $filepath.$basename;
-			return $filename;
+			return $this->getDirname($config) . $this->desiredBasename;
 		}
 		
-		private function getFilePath($config)
+		// eg: /thumbnails/100x200/
+		private function getDirname($config)
 		{
-			$filepath = $this->outputDirectory._DS_.$config->width.'x'.$config->height._DS_;
-			return $filepath;
+			return $this->outputDirectory . _DS_ . $config->width . 'x' . $config->height . _DS_;
 		}
 	}
 }
