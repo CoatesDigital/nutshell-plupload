@@ -52,43 +52,42 @@ namespace application\plugin\plupload
 		/**
 		 * Generates thumbnails in the sizes defined in the config.
 		 * Places the thumbnails into the thumbnail_dir, in subfolders defined by the thumbnail dimensions.
+		 * A name for the thumbnails can be defined. eg if you wanted foo.mov to generate bar.png
 		 * Returns true on supported files, otherwise false.
 		 * Supports Images and Video.
 		 */
-		public function generateThumbnails($originalFilePath, $thumbnail_dir=false)
+		public function generateThumbnails($originalFilePath, $thumbnailBasename=false, $thumbnail_dir=false)
 		{
-			if(!$thumbnail_dir) $thumbnail_dir = Nutshell::getInstance()->config->plugin->Plupload->thumbnail_dir;
-			$pathinfo	= pathinfo($originalFilePath);
-			$dirname	= $pathinfo['dirname'] . _DS_;			// eg. /tmp/uploaded/
-			$basename	= $pathinfo['basename'];				// eg. myImage.JPG
-			$extension	= strtolower($pathinfo['extension']);	// eg. jpg
-			$filename 	= $pathinfo['filename'];				// eg. myImage
-		
+			if(!$thumbnailBasename) $thumbnailBasename = pathinfo($originalFilePath, PATHINFO_BASENAME) . '.png';
+			if(!$thumbnail_dir)		$thumbnail_dir = Nutshell::getInstance()->config->plugin->Plupload->thumbnail_dir;
+			
+\application\helper\DebugHelper::logToFile('plupload.log', "$originalFilePath, $thumbnailBasename, $thumbnail_dir");
+			
 			$thumbnailMaker = new ThumbnailMaker();
 			
 			if (!file_exists($thumbnail_dir)) @mkdir($thumbnail_dir, 0755, true);
-            if (!file_exists($dirname)) @mkdir($dirname, 0755, true);
-			switch($extension)
+			switch(strtolower(pathinfo($originalFilePath, PATHINFO_EXTENSION)))
 			{
 				case 'jpg':
 				case 'jpeg':
 				case 'png':
 					
 					// Make thumbnails from the image, store them in the thumbnail dir
-					$thumbnailMaker->processFile($originalFilePath);
+					$thumbnailMaker->processFile($originalFilePath, $thumbnailBasename, $thumbnail_dir);
 
 					return true;
 					
 				case 'mp4':
 
-					// get a screenshot from the video, store it in the temp dir
-					$this->videoScreenshot($originalFilePath, $dirname . $basename . '.png');
+					// get a screenshot from the video, eg: /path/to/video.mp4.png
+					$screenshotPath = pathinfo($originalFilePath, PATHINFO_DIRNAME) . _DS_ . $thumbnailBasename;
+					$this->videoScreenshot($originalFilePath, $screenshotPath);
 				
 					// Make thumbnails from the screenshot, store them in the thumbnail dir
-					$thumbnailMaker->processFile($dirname . $basename . '.png', $basename.'.png');
+					$thumbnailMaker->processFile($screenshotPath, $thumbnailBasename, $thumbnail_dir);
 
-					// delete the screenshot in the temporary dir
-					@unlink($dirname . $basename . '.png');
+					// delete the screenshot
+					@unlink($screenshotPath);
 
 					return true;
 					

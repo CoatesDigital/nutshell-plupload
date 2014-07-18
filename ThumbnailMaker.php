@@ -67,24 +67,10 @@ namespace application\plugin\plupload
 		
 		public function processFile($originalFilePath, $desiredBasename=null, $outputDirectory=null)
 		{
-			if(!is_readable($originalFilePath))
-			{
-				throw new PluploadException('Cannot process file. File not readable.', $originalFilePath);
-			}
+			if(!is_readable($originalFilePath)) throw new PluploadException('Cannot process file. File not readable.', $originalFilePath);
+			if(!$desiredBasename) $desiredBasename = pathinfo($originalFilePath, PATHINFO_BASENAME) . '.png'; // eg file.jpg becomes file.jpg.png
+			if($outputDirectory) $this->outputDirectory = $outputDirectory;
 			
-			// eg file.mov becomes file.mov.png
-			if(!$desiredBasename)
-			{
-				$desiredBasename = pathinfo($originalFilePath, PATHINFO_BASENAME) . '.png';
-			}
-			
-			if($outputDirectory)
-			{
-				$this->outputDirectory = $outputDirectory;
-			}
-			
-			// commented out as it stops generation, need to differentiate between php and bash better
-			// $this->originalFilePath	= '"' . $originalFilePath . '"';
 			$this->originalFilePath	= $originalFilePath;
 			$this->desiredBasename = $desiredBasename;
 			$this->calculateOrientation($originalFilePath);
@@ -94,29 +80,16 @@ namespace application\plugin\plupload
 			// Output the image into each of the thumbnail sizes
 			foreach($this->thumbnails as $thumbnail)
 			{
-				$thumbnailPath = $this->getPath($thumbnail);
-				if (!file_exists($thumbnailPath)) @mkdir($thumbnailPath, 0755, true);
-				$image = WideImage::load($thumbnailPath);
+				if (!is_dir($this->getDir($thumbnail))) mkdir($this->getDir($thumbnail), 0755, true);
+				$image = WideImage::load($originalFilePath);
 				switch($thumbnail->constraint)
 				{
-					case 'scale':
-						$this->scale($image, $thumbnail);
-						break;
-					case 'scale-down':
-						$this->scaleDown($image, $thumbnail);
-						break;
-					case 'stretch':
-						$this->stretch($image, $thumbnail);
-						break;
-					case 'crop-best-orientation':
-						$this->cropBestOrientation($image, $thumbnail);
-						break;
-					case 'crop':
-						$this->crop($image, $thumbnail);
-						break;
-					case 'stretch-best-orientation':
-						$this->stretchBestOrientation($image, $thumbnail);
-						break;
+					case 'scale':						$this->scale($image, $thumbnail);					break;
+					case 'scale-down':					$this->scaleDown($image, $thumbnail);				break;
+					case 'stretch':						$this->stretch($image, $thumbnail);					break;
+					case 'crop-best-orientation':		$this->cropBestOrientation($image, $thumbnail);		break;
+					case 'crop':						$this->crop($image, $thumbnail);					break;
+					case 'stretch-best-orientation':	$this->stretchBestOrientation($image, $thumbnail);	break;
 				}
 			}
 		}
@@ -221,14 +194,14 @@ namespace application\plugin\plupload
 			$image->saveToFile($newFile);
 		}
 		
-		// eg: /thumbnails/100x200/movie.mp4.png
+		// eg: /thumbnails/100x200/image.jpg.png
 		private function getPath($config)
 		{
-			return $this->getDirname($config) . $this->desiredBasename;
+			return $this->getDir($config) . $this->desiredBasename;
 		}
 		
 		// eg: /thumbnails/100x200/
-		private function getDirname($config)
+		private function getDir($config)
 		{
 			return $this->outputDirectory . _DS_ . $config->width . 'x' . $config->height . _DS_;
 		}
