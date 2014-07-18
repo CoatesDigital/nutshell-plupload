@@ -17,6 +17,7 @@ namespace application\plugin\plupload
 		}
 		
 		private $callback = null;
+		private $thumbnailMaker = null;
 		
 		public function getCallback()
 		{
@@ -26,6 +27,11 @@ namespace application\plugin\plupload
 		public function setCallback($class, $methodName)
 		{
 		    $this->callback = array($class, $methodName);
+		}
+		
+		public function getThumbnailMaker()
+		{
+		    return $this->thumbnailMaker;
 		}
 		
 		/**
@@ -60,12 +66,9 @@ namespace application\plugin\plupload
 		{
 			if(!$thumbnailBasename) $thumbnailBasename = pathinfo($originalFilePath, PATHINFO_BASENAME) . '.png';
 			if(!$thumbnail_dir)		$thumbnail_dir = Nutshell::getInstance()->config->plugin->Plupload->thumbnail_dir;
+			if(!file_exists($thumbnail_dir)) @mkdir($thumbnail_dir, 0755, true);
+			$this->thumbnailMaker = new ThumbnailMaker();
 			
-\application\helper\DebugHelper::logToFile('plupload.log', "$originalFilePath, $thumbnailBasename, $thumbnail_dir");
-			
-			$thumbnailMaker = new ThumbnailMaker();
-			
-			if (!file_exists($thumbnail_dir)) @mkdir($thumbnail_dir, 0755, true);
 			switch(strtolower(pathinfo($originalFilePath, PATHINFO_EXTENSION)))
 			{
 				case 'jpg':
@@ -73,7 +76,7 @@ namespace application\plugin\plupload
 				case 'png':
 					
 					// Make thumbnails from the image, store them in the thumbnail dir
-					$thumbnailMaker->processFile($originalFilePath, $thumbnailBasename, $thumbnail_dir);
+					$this->thumbnailMaker->processFile($originalFilePath, $thumbnailBasename, $thumbnail_dir);
 
 					return true;
 					
@@ -84,7 +87,7 @@ namespace application\plugin\plupload
 					$this->videoScreenshot($originalFilePath, $screenshotPath);
 				
 					// Make thumbnails from the screenshot, store them in the thumbnail dir
-					$thumbnailMaker->processFile($screenshotPath, $thumbnailBasename, $thumbnail_dir);
+					$this->thumbnailMaker->processFile($screenshotPath, $thumbnailBasename, $thumbnail_dir);
 
 					// delete the screenshot
 					@unlink($screenshotPath);
