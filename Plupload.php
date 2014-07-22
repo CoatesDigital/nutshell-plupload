@@ -111,7 +111,7 @@ namespace application\plugin\plupload
 			$position = ($duration * ($percentage / 100));
 			
 			// save the screenshot
-			$command = "\"{$ffmpeg_dir}ffmpeg\" -loglevel quiet -i \"$originalFile\" -ss $position -f image2 \"$newFile\"";
+			$command = "\"{$ffmpeg_dir}ffmpeg\" -loglevel quiet -i \"$originalFile\" -ss $position -f image2 \"$newFile\" > /dev/null 2>&1";
 			\application\helper\DebugHelper::traceToFile('plupload-exec.log', $command);
 			shell_exec($command);
 		}
