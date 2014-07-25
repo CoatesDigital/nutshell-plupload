@@ -78,7 +78,7 @@ namespace application\plugin\plupload
 					// Make thumbnails from the image, store them in the thumbnail dir
 					$this->thumbnailMaker->processFile($originalFilePath, $thumbnailBasename, $thumbnail_dir);
 
-					return true;
+					return;
 					
 				case 'mp4':
 
@@ -90,13 +90,13 @@ namespace application\plugin\plupload
 					$this->thumbnailMaker->processFile($screenshotPath, $thumbnailBasename, $thumbnail_dir);
 
 					// delete the screenshot
-					@unlink($screenshotPath);
+					unlink($screenshotPath);
 
-					return true;
+					return;
 					
 				default:
 
-					return false;
+					throw new PluploadException("Unsupported file type: $filename");
 			}
 		}
 		
