@@ -96,7 +96,7 @@ namespace application\plugin\plupload
 					
 				default:
 
-					throw new PluploadException("Unsupported file type: $filename");
+					throw new PluploadException("Unsupported file type: $originalFilePath");
 			}
 		}
 		
